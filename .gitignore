@@ -1,0 +1,9 @@
+.vscode
+.pyvenv*
+*.spec
+__pycache__/
+*.pyc
+dist/
+*.egg-info/
+build/
+*.spec
