@@ -48,6 +48,12 @@ def main(debug=False):
     app_domain = "bashtian.fr"
     app_name = "discord-overlay"
     log_file_path = f"%APPDATA%/{app_domain}/{app_name}.log"
+
+    try:
+        os.makedirs(log_file_path)
+    except FileExistsError:
+        pass
+
     set_logger(debug, log_file_path)
 
     app = App(organization_domain=app_domain, name=app_name)

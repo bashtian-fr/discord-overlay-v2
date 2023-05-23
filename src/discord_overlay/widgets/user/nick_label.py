@@ -9,10 +9,10 @@ class UserWidgetNickLabel(QLabel):
         super().__init__(text=nickname, parent=parent)
         self.controller = controller
         self.setProperty("cssClass", "UserWidgetNickLabel")
-        self.update_setttings()
+        self.update_settings()
         self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
 
-    def update_setttings(self) -> None:
+    def update_settings(self) -> None:
         font_size = self.controller.config.get(
             "user_nickname_fontsize",
             type=int,
