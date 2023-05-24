@@ -137,7 +137,7 @@ class UserWidget(QWidget):
 
     def update_setting(self, setting_name: str) -> None:
         if "nickname" in setting_name:
-            return self.nick_label.update_setttings()
+            return self.nick_label.update_settings()
 
         if "user_avatar_size" in setting_name:
             return self.set_avatar_data(self.avatar_data)
