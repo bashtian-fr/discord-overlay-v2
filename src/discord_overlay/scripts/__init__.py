@@ -3,6 +3,7 @@ import os
 import signal
 import sys
 import click
+import pathlib
 
 from logging.handlers import RotatingFileHandler
 from discord_overlay.app import App
@@ -18,6 +19,8 @@ if sys.platform == 'win32':
 
 
 def set_logger(debug, log_file_path):
+    create_logging_folder(log_file_path)
+
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
     formatter = logging.Formatter(
@@ -42,17 +45,20 @@ def set_logger(debug, log_file_path):
     logger.addHandler(ch)
 
 
+def create_logging_folder(log_file_path):
+    try:
+        log_dir = os.path.expandvars(log_file_path)
+        os.makedirs(pathlib.Path(log_dir).parent)
+    except FileExistsError:
+        pass
+
+
 @click.command()
 @click.option("--debug", is_flag=True, default=False)
 def main(debug=False):
     app_domain = "bashtian.fr"
     app_name = "discord-overlay"
-    log_file_path = f"%APPDATA%/{app_domain}/{app_name}.log"
-
-    try:
-        os.makedirs(log_file_path)
-    except FileExistsError:
-        pass
+    log_file_path = fr"%APPDATA%/{app_domain}/{app_name}.log"
 
     set_logger(debug, log_file_path)
 

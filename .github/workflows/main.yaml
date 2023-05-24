@@ -14,38 +14,60 @@ jobs:
 
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-latest, macOS-latest]
-        python: ['3.11']
+        os:
+        - windows-latest
+        # - ubuntu-latest
+        # - macOS-latest
+        python:
+        - '3.11'
 
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python }}
+    - uses: actions/checkout@v3
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python }}
+    # - name: Install deps
+    #   run: |
+    #     python -m pip install --upgrade pip setuptools wheel Pillow
+    #     pip install -U ".[tests]"
+    #   shell: bash
 
-      - name: Install deps
-        run: |
-          python -m pip install --upgrade pip setuptools wheel Pillow
-          pip install -U ".[tests]"
-        shell: bash
+    # - name: Build
+    #   run: |
+    #     delimiter=":"
+    #     if [[ "${{matrix.os}}" == "windows-latest" ]]; then
+    #       delimiter=";"
+    #     fi
+    #     if [[ "${{matrix.os}}" == "ubuntu-latest" ]]; then
+    #       sudo apt update && sudo apt install -y libegl1
+    #     fi
+    #     pyinstaller --icon src/discord_overlay/static/images/icon.ico -n discord-overlay --onefile --windowed src/discord_overlay/scripts/__init__.py --add-data "src/discord_overlay/static/${delimiter}discord_overlay/static/"
+    #     tar -czvf discord-overlay-${{ github.ref_name}}-${{ matrix.os }}.tar.gz dist/
+    #     zip -r discord-overlay-${{ github.ref_name}}-${{ matrix.os }}.zip dist/
+    #   shell: bash
+    # - name: Upload artificat
+    #   uses: actions/upload-artifact@v3
+    #   with:
+    #     path: discord-overlay-${{ github.ref_name}}-${{ matrix.os }}.tar.gz
 
-      - name: Build
-        run: |
-          delimiter=":"
-          if [[ "${{matrix.os}}" == "windows-latest" ]]; then
-            delimiter=";"
-          fi
-          if [[ "${{matrix.os}}" == "ubuntu-latest" ]]; then
-            sudo apt update && sudo apt install -y libegl1
-          fi
-          pyinstaller --icon src/discord_overlay/static/images/icon.ico -n discord-overlay --onefile --windowed src/discord_overlay/scripts/__init__.py --add-data "src/discord_overlay/static/${delimiter}discord_overlay/static/"
-          tar -czvf discord-overlay-${{ github.ref_name}}-${{ matrix.os }}.tar.gz dist/
-        shell: bash
-      - name: Upload artificat
-        uses: actions/upload-artifact@v3
-        with:
-          path: discord-overlay-${{ github.ref_name}}-${{ matrix.os }}.tar.gz
+    - name: Install deps
+      run: |
+        python -m pip install --upgrade pip setuptools wheel Pillow
+        pip install -U ".[tests]"
+      shell: bash
+
+    - name: Build
+      run: |
+        delimiter=";"
+        pyinstaller --icon src/discord_overlay/static/images/icon.ico -n discord-overlay --onefile --windowed src/discord_overlay/scripts/__init__.py --add-data "src/discord_overlay/static/${delimiter}discord_overlay/static/"
+        mv dist/discord-overlay.exe discord-overlay-${{ github.ref_name}}.exe
+      shell: bash
+
+    - name: Upload artificat
+      uses: actions/upload-artifact@v3
+      with:
+        path: discord-overlay-${{ github.ref_name}}.exe
 
   release-job:
     name:  Release
@@ -54,18 +76,20 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Download artificats
-        uses: actions/download-artifact@v3
-      - name: Display structure of downloaded files
-        run: ls -R
-      - name: Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ github.ref }}
-          name: ${{ github.ref }}
-          draft: true
-          prerelease: false
-          files: |
-            artifact/*.tar.gz
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Download artificats
+      uses: actions/download-artifact@v3
+
+    - name: Display structure of downloaded files
+      run: ls -R
+
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ github.ref }}
+        name: ${{ github.ref }}
+        draft: true
+        prerelease: false
+        files: |
+          artifact/*.exe
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
