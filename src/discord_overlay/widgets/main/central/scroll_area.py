@@ -120,6 +120,7 @@ class ScrollAreaUserContainer(QWidget):
         for i in reversed(range(self.layout().count())):
             widget = self.layout().itemAt(i).widget()
             if not user_id or widget.user_data.get("id") == user_id:
+                self.controller.someone_left_channel_notification(widget)
                 self.layout().removeWidget(widget)
                 if widget:
                     widget.setParent(None)

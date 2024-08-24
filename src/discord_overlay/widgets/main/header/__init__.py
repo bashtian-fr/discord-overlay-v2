@@ -64,7 +64,6 @@ class MainWindowHeaderWidget(QWidget):
         self.setCursor(Qt.CursorShape.ClosedHandCursor)
 
     def mouseReleaseEvent(self, event: QMouseEvent) -> None:
-        print(event)
         self.setCursor(Qt.CursorShape.OpenHandCursor)
 
     def mouseMoveEvent(self, event: QMouseEvent) -> None:

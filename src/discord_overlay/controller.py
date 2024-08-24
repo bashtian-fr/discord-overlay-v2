@@ -1,10 +1,15 @@
 import logging
 import sys
 import traceback
+from typing import TYPE_CHECKING
 
-from PyQt6.QtCore import QObject, pyqtSlot, pyqtSignal
+from PyQt6.QtCore import Qt, QObject, pyqtSlot, pyqtSignal
 from PyQt6.QtWidgets import QApplication, QErrorMessage
+from PyQt6.QtGui import QPixmap
 
+if TYPE_CHECKING:
+    from .widgets.user import UserWidget
+from .libs import show_toast
 from .model import Model
 from .config import Config
 from .libs.QDiscordWebSocket import QDiscordWebSocket
@@ -33,13 +38,25 @@ class Controller(QObject):
         logging.info("Connecting to Discord...")
         self.discord_connector = QDiscordWebSocket(controller=self, parent=self)
         self.discord_connector.errorOccurred.connect(self.on_connection_error)
-        self.discord_connector.custom_signal_connection_ok.connect(self.on_connection_ok)
-        self.discord_connector.custom_signal_connection_failure.connect(self.on_connection_failure)
+        self.discord_connector.custom_signal_connection_ok.connect(
+            self.on_connection_ok
+        )
+        self.discord_connector.custom_signal_connection_failure.connect(
+            self.on_connection_failure
+        )
         self.discord_connector.open_()
-        self.discord_connector.custom_signal_you_joined_voice_channel.connect(self.on_you_joined_voice_channel_signal)
-        self.discord_connector.custom_signal_you_left_voice_channel.connect(self.on_you_left_voice_channel)
-        self.discord_connector.custom_signal_update_voice_channel.connect(self.on_update_voice_channel)
-        self.discord_connector.custom_signal_someone_left_voice_channel.connect(self.on_someone_left_channel)
+        self.discord_connector.custom_signal_you_joined_voice_channel.connect(
+            self.on_you_joined_voice_channel_signal
+        )
+        self.discord_connector.custom_signal_you_left_voice_channel.connect(
+            self.on_you_left_voice_channel
+        )
+        self.discord_connector.custom_signal_update_voice_channel.connect(
+            self.on_update_voice_channel
+        )
+        self.discord_connector.custom_signal_someone_left_voice_channel.connect(
+            self.on_someone_left_channel
+        )
 
     def on_connection_failure(self) -> None:
         self.connection_status_changed.emit("FAILURE")
@@ -62,16 +79,15 @@ class Controller(QObject):
 
     def on_you_left_voice_channel(self) -> None:
         logging.debug(
-            "Leaving channel: "
-            f"{self.discord_connector.current_voice_channel_id}",
+            "Leaving channel: " f"{self.discord_connector.current_voice_channel_id}",
         )
         self.model.empty_users()
 
     def on_update_voice_channel(self, data: dict) -> None:
         logging.debug(f"Got an update channel event:\n {data}")
-        user: dict = data['data']['user']
-        user['nick'] = data['data']['nick']
-        user['voice_state'] = data['data']['voice_state']
+        user: dict = data["data"]["user"]
+        user["nick"] = data["data"]["nick"]
+        user["voice_state"] = data["data"]["voice_state"]
 
         if not user.get("id") in self.model.users:
             self.model.add_user(user)
@@ -79,6 +95,40 @@ class Controller(QObject):
             self.model.change_user(user)
 
     def on_someone_left_channel(self, data: dict) -> None:
-        user: dict = data['data']['user']
         logging.debug(f"{data['data']['nick']} left the channel")
+        user: dict = data["data"]["user"]
         self.model.delete_user(user.get("id"))
+
+    def someone_left_channel_notification(self, user_widget: "UserWidget") -> None:
+        icon = self.get_icon(user_widget.avatar_data, user_widget.get_avatar_size())
+        logging.debug(f"{user_widget.user_data['nick']} left the channel")
+        show_toast(
+            parent=None,
+            title="Someone left the channel",
+            text=f"{user_widget.user_data['nick']} left the channel",
+            # preset="error",
+            icon=icon,
+        )
+
+    def someone_joined_channel_notification(self, user_widget: "UserWidget") -> None:
+        logging.debug(f"{user_widget.user_data['nick']} joined the channel")
+        icon = self.get_icon(user_widget.avatar_data, user_widget.get_avatar_size())
+
+        show_toast(
+            parent=None,
+            title="Discord-Overlay",
+            text=f"{user_widget.user_data['nick']} join the channel",
+            # preset="success",
+            icon=icon,
+        )
+
+    def get_icon(self, bytes, size):
+        icon_pix = QPixmap()
+        icon_pix.loadFromData(bytes)
+        icon_pix = icon_pix.scaled(
+            size,
+            size,
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation,
+        )
+        return icon_pix

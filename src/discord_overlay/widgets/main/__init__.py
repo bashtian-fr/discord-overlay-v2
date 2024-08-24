@@ -1,5 +1,6 @@
 from PyQt6.QtWidgets import QMainWindow
 from PyQt6.QtCore import Qt, QPoint
+from PyQt6.QtGui import QIcon
 
 from .central import CentralWidget
 from .central.scroll_area import CentralWidgetScrollArea
@@ -16,6 +17,7 @@ class MainWidget(QMainWindow):
         self._ui = MainWidgetUi()
         self._ui.setup_ui(self)
         self.old_pos = self.pos()
+        self.setWindowIcon(QIcon("images:icon.png"))
         self._ui.header.header_toggle_button.clicked.connect(self.toggle)
         self.controller.main_widget_visibility_changed.connect(self.toggle)
         self.controller.settings_dialog_visibility_changed.connect(
@@ -71,7 +73,7 @@ class MainWidgetUi:
             Qt.WidgetAttribute.WA_NoSystemBackground)
         self.main_widget.setWindowFlags(
             Qt.WindowType.FramelessWindowHint |
-            Qt.WindowType.Tool |
+            # Qt.WindowType.Tool |
             Qt.WindowType.WindowStaysOnTopHint)
         self.main_widget.setMinimumHeight(300)
         self.main_widget.setMinimumWidth(300)

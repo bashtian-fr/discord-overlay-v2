@@ -16,6 +16,7 @@ class QDiscordWebSocket(QWebSocket):
     custom_signal_you_joined_voice_channel = pyqtSignal()
     custom_signal_you_left_voice_channel = pyqtSignal()
     custom_signal_someone_left_voice_channel = pyqtSignal(dict)
+    custom_signal_someone_joined_voice_channel = pyqtSignal(dict)
     custom_signal_update_voice_channel = pyqtSignal(dict)
     custom_signal_speaking_start = pyqtSignal(dict)
     custom_signal_speaking_stop = pyqtSignal(dict)
@@ -120,10 +121,6 @@ class QDiscordWebSocket(QWebSocket):
             self.request_authentication_token()
             return
 
-        if event == "VOICE_STATE_CREATE":
-            # When a user joins a subscribed voice channel
-            return
-
         if event == "VOICE_STATE_DELETE":
             # When a user leaves a subscribed voice channel
             self.custom_signal_someone_left_voice_channel.emit(data)
@@ -152,6 +149,11 @@ class QDiscordWebSocket(QWebSocket):
                 return
 
             self.set_active_channel(channel_id)
+            return
+
+        if event == "VOICE_STATE_CREATE":
+            # When a user joins a subscribed voice channel
+            # self.custom_signal_someone_joined_voice_channel.emit(data)
             return
 
         if event == "VOICE_CONNECTION_STATUS":

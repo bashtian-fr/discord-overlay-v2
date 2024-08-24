@@ -1,5 +1,6 @@
 .vscode
 .pyvenv*
+.venv*
 *.spec
 __pycache__/
 *.pyc

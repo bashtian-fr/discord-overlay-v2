@@ -15,7 +15,7 @@ class App(QApplication):
         self.setOrganizationDomain(organization_domain)
         self.setApplicationName(name)
         self.setQuitOnLastWindowClosed(False)
-
+        self.setWindowIcon(QIcon("images:icon.png"))
         self.config = Config(organization_domain, name)
         self.model = Model()
         self.controller = Controller(model=self.model, config=self.config)

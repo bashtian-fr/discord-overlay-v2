@@ -185,7 +185,7 @@ class UserWidget(QWidget):
 
     def set_avatar_data(self, avatar_data: bytes) -> None:
         self.avatar_data = avatar_data
-
+        self.controller.someone_joined_channel_notification(self)
         if self.avatar_label:
             self.avatar_label.setParent(None)
 
