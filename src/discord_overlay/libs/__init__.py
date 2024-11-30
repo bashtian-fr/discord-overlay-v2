@@ -1,5 +1,4 @@
 from pyqttoast import Toast, ToastPreset
-from PyQt6.QtGui import QColor
 
 
 def show_toast(parent, title, text, duration=5000, preset=None, icon=None):
@@ -19,7 +18,7 @@ def show_toast(parent, title, text, duration=5000, preset=None, icon=None):
 
     if icon:
         toast.setShowIcon(True)
-        toast.setIcon(icon)
+        toast.setIcon(icon, custom=True)
 
     toast.setShowDurationBar(True)
     toast.show()
