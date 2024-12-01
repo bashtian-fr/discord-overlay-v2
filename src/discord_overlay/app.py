@@ -1,9 +1,9 @@
-import logging
-
-from PyQt6.QtWidgets import QApplication
 from PyQt6.QtGui import QIcon
+from PyQt6.QtWidgets import QApplication
+
 from .config import Config
 from .controller import Controller
+from .libs import show_toast
 from .model import Model
 from .widgets.main import MainWidget
 from .widgets.systemtray import SystemTrayWidget
@@ -23,27 +23,20 @@ class App(QApplication):
         self.system_tray = SystemTrayWidget(
             controller=self.controller,
         )
-        self.main_widget = MainWidget(
-            controller=self.controller
-        )
+        self.main_widget = MainWidget(controller=self.controller)
         self.main_widget.show()
 
     def show_background_message(self) -> None:
-        if not self.system_tray.supportsMessages():
-            logging.warning(
-                "Overlay running in background."
-                "This system doesnt support system notifications."
-            )
-            return
-
         if self.model.running_in_background_message_shown:
-            # Only show the message once
+            # Only show the message only once
             return
 
         self.model.running_in_background_message_shown = True
-        self.system_tray.showMessage(
+        show_toast(
+            None,
             self.applicationName(),
             f"The {self.applicationName()} is running in background",
-            QIcon("images:icon.png"),
-            msecs=1000
+            duration=5000,
+            preset="success",
+            icon="images:icon_dark.png",
         )

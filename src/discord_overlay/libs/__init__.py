@@ -17,8 +17,9 @@ def show_toast(parent, title, text, duration=5000, preset=None, icon=None):
         toast.applyPreset(preset)
 
     if icon:
+        toast.setIconColor(None)
         toast.setShowIcon(True)
-        toast.setIcon(icon, custom=True)
+        toast.setIcon(icon)
 
     toast.setShowDurationBar(True)
     toast.show()
