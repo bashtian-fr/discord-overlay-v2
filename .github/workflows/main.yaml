@@ -22,9 +22,9 @@ jobs:
         - '3.13'
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Setup Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python }}
     # - name: Install deps
@@ -47,7 +47,7 @@ jobs:
     #     zip -r discord-overlay-${{ github.ref_name}}-${{ matrix.os }}.zip dist/
     #   shell: bash
     # - name: Upload artificat
-    #   uses: actions/upload-artifact@v3
+    #   uses: actions/upload-artifact@v4
     #   with:
     #     path: discord-overlay-${{ github.ref_name}}-${{ matrix.os }}.tar.gz
 
@@ -65,7 +65,7 @@ jobs:
       shell: bash
 
     - name: Upload artificat
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         path: discord-overlay-${{ github.ref_name}}.exe
 
@@ -77,13 +77,13 @@ jobs:
       contents: write
     steps:
     - name: Download artificats
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
 
     - name: Display structure of downloaded files
       run: ls -R
 
     - name: Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ github.ref }}
         name: ${{ github.ref }}
