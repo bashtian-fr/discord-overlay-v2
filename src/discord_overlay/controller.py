@@ -3,16 +3,17 @@ import sys
 import traceback
 from typing import TYPE_CHECKING
 
-from PyQt6.QtCore import Qt, QObject, pyqtSlot, pyqtSignal
-from PyQt6.QtWidgets import QApplication, QErrorMessage
+from PyQt6.QtCore import QObject, Qt, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QPixmap
+from PyQt6.QtWidgets import QApplication, QErrorMessage
 
 if TYPE_CHECKING:
     from .widgets.user import UserWidget
-from .libs import show_toast
-from .model import Model
+
 from .config import Config
+from .libs import show_toast
 from .libs.QDiscordWebSocket import QDiscordWebSocket
+from .model import Model
 
 
 class Controller(QObject):
@@ -27,6 +28,7 @@ class Controller(QObject):
         super().__init__()
         self.model = model
         self.config = config
+        self.just_joined_channel = False
         self.init_discord_connector()
 
     @pyqtSlot()
@@ -38,16 +40,12 @@ class Controller(QObject):
         logging.info("Connecting to Discord...")
         self.discord_connector = QDiscordWebSocket(controller=self, parent=self)
         self.discord_connector.errorOccurred.connect(self.on_connection_error)
-        self.discord_connector.custom_signal_connection_ok.connect(
-            self.on_connection_ok
-        )
-        self.discord_connector.custom_signal_connection_failure.connect(
-            self.on_connection_failure
-        )
+        self.discord_connector.custom_signal_connection_ok.connect(self.on_connection_ok)
+        self.discord_connector.custom_signal_connection_failure.connect(self.on_connection_failure)
         self.discord_connector.open_()
-        self.discord_connector.custom_signal_you_joined_voice_channel.connect(
-            self.on_you_joined_voice_channel_signal
-        )
+        # self.discord_connector.custom_signal_you_joined_voice_channel.connect(
+        #     self.on_you_joined_voice_channel_signal
+        # )
         self.discord_connector.custom_signal_you_left_voice_channel.connect(
             self.on_you_left_voice_channel
         )
@@ -74,8 +72,8 @@ class Controller(QObject):
         error_dialog.exec()
         sys.exit(1)
 
-    def on_you_joined_voice_channel_signal(self) -> None:
-        logging.debug("You joined a channel")
+    # def on_you_joined_voice_channel_signal(self) -> None:
+    #     logging.debug("You joined a channel")
 
     def on_you_left_voice_channel(self) -> None:
         logging.debug(
@@ -99,25 +97,39 @@ class Controller(QObject):
         user: dict = data["data"]["user"]
         self.model.delete_user(user.get("id"))
 
-    def someone_left_channel_notification(self, user_widget: "UserWidget") -> None:
+    def someone_left_channel_notification(
+        self, user_widget: "UserWidget", send_toast=True
+    ) -> None:
         icon = self.get_icon(user_widget.avatar_data, user_widget.get_avatar_size())
         logging.debug(f"{user_widget.user_data['nick']} left the channel")
-        show_toast(
-            parent=None,
-            title="Someone left the channel",
-            text=f"{user_widget.user_data['nick']} left the channel",
-            # preset="error",
-            icon=icon,
-        )
+
+        if user_widget.user_data.get("id") == self.discord_connector.user.get("id"):
+            return
+
+        if send_toast:
+            show_toast(
+                parent=None,
+                title="Someone left the channel",
+                text=f"{user_widget.user_data['nick']} left the channel",
+                # preset="error",
+                icon=icon,
+            )
 
     def someone_joined_channel_notification(self, user_widget: "UserWidget") -> None:
         logging.debug(f"{user_widget.user_data['nick']} joined the channel")
+        if self.just_joined_channel:
+            self.just_joined_channel = False
+            return
+
+        if user_widget.user_data.get("id") == self.discord_connector.user.get("id"):
+            return
+
         icon = self.get_icon(user_widget.avatar_data, user_widget.get_avatar_size())
 
         show_toast(
             parent=None,
             title="Discord-Overlay",
-            text=f"{user_widget.user_data['nick']} join the channel",
+            text=f"{user_widget.user_data['nick']} joined the channel",
             # preset="success",
             icon=icon,
         )

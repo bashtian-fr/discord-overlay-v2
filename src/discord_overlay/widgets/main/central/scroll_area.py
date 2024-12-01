@@ -1,10 +1,10 @@
 import logging
 
 from PyQt6.QtCore import Qt, QThreadPool, pyqtSignal
-from PyQt6.QtWidgets import QScrollArea, QWidget, QVBoxLayout
+from PyQt6.QtWidgets import QScrollArea, QVBoxLayout, QWidget
 
-from ...user import UserWidget
 from ....controller import Controller
+from ...user import UserWidget
 
 
 class CentralWidgetScrollArea(QScrollArea):
@@ -12,41 +12,44 @@ class CentralWidgetScrollArea(QScrollArea):
         super().__init__(parent=parent)
         self.controller = controller
         self.setObjectName(self.__class__.__name__)
-        self.setStyleSheet("""
+        self.setStyleSheet(
+            """
             #CentralWidgetScrollArea {
                 background: transparent;
                 border: none;
                 border-left: 1px dotted rgba(255,255,255, 0.5);
                 border-right: 1px dotted rgba(255,255,255, 0.5);
             }
-        """)
+        """
+        )
         self.setWidgetResizable(True)
         self.init_ui()
 
     def init_ui(self) -> None:
-        self.user_container = ScrollAreaUserContainer(
-            controller=self.controller,
-            parent=self
-        )
+        self.user_container = ScrollAreaUserContainer(controller=self.controller, parent=self)
         self.setWidget(self.user_container)
 
     def hide_border(self) -> None:
-        self.setStyleSheet("""
+        self.setStyleSheet(
+            """
             #CentralWidgetScrollArea {
                 background: transparent;
                 border: none;
             }
-        """)
+        """
+        )
 
     def show_border(self) -> None:
-        self.setStyleSheet("""
+        self.setStyleSheet(
+            """
             #CentralWidgetScrollArea {
                 background: transparent;
                 border: none;
                 border-left: 1px dotted rgba(255,255,255, 0.5);
                 border-right: 1px dotted rgba(255,255,255, 0.5);
             }
-        """)
+        """
+        )
 
 
 class ScrollAreaUserContainer(QWidget):
@@ -56,11 +59,13 @@ class ScrollAreaUserContainer(QWidget):
         super().__init__(parent=parent)
         self.controller = controller
         self.setObjectName(self.__class__.__name__)
-        self.setStyleSheet("""
+        self.setStyleSheet(
+            """
             #ScrollAreaUserContainer {
                 background: transparent;
             }
-        """)
+        """
+        )
         self.controller.settings_changed_signal.connect(self.on_settings_changed)
         self.controller.model.users_emptied_signal.connect(self.on_users_emptied)
         self.controller.model.user_added_signal.connect(self.on_user_added)
@@ -102,6 +107,7 @@ class ScrollAreaUserContainer(QWidget):
             user_data=user,
             parent=self,
         )
+
         self.toggle_widgets_signal.connect(user_widget.toggle)
         self.layout().addWidget(user_widget)
 
@@ -113,14 +119,14 @@ class ScrollAreaUserContainer(QWidget):
         self.add_user(user)
 
     def on_user_removed(self, user_id: str) -> None:
-        self.remove_users(user_id=user_id)
+        self.remove_users(user_id=user_id, send_toast=True)
 
-    def remove_users(self, user_id: str = None) -> None:
+    def remove_users(self, user_id: str = None, send_toast=False) -> None:
         logging.debug(f"Removing users: {user_id}")
         for i in reversed(range(self.layout().count())):
             widget = self.layout().itemAt(i).widget()
             if not user_id or widget.user_data.get("id") == user_id:
-                self.controller.someone_left_channel_notification(widget)
+                self.controller.someone_left_channel_notification(widget, send_toast=send_toast)
                 self.layout().removeWidget(widget)
                 if widget:
                     widget.setParent(None)
