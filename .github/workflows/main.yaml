@@ -19,7 +19,7 @@ jobs:
         # - ubuntu-latest
         # - macOS-latest
         python:
-        - '3.11'
+        - '3.13'
 
     steps:
     - uses: actions/checkout@v3
